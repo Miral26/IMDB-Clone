@@ -3,7 +3,7 @@ import { Movie, CreateMovieData, UpdateMovieData } from '@/features/moviesSlice'
 import { Actor } from '@/features/actorsSlice';
 import { Producer } from '@/features/producersSlice';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://imdb-clone-oe9e.onrender.com/api';
 
 const api = axios.create({
   baseURL: API_URL,

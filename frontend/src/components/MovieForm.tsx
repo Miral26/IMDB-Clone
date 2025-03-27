@@ -96,7 +96,7 @@ export default function MovieForm({ movie, isEdit = false }: MovieFormProps) {
     dispatch(fetchProducers());
     dispatch(fetchActors());
     if (movie?.poster) {
-      setPreviewUrl(`http://localhost:5000${movie.poster}`);
+      setPreviewUrl(`https://imdb-clone-oe9e.onrender.com${movie.poster}`);
     }
   }, [dispatch, movie]);
 
@@ -132,7 +132,7 @@ export default function MovieForm({ movie, isEdit = false }: MovieFormProps) {
         formData.append('poster', selectedFile);
 
         try {
-          const response = await axios.post('http://localhost:5000/api/upload', formData, {
+          const response = await axios.post(`https://imdb-clone-oe9e.onrender.com/api/upload`, formData, {
             headers: {
               'Content-Type': 'multipart/form-data',
             },

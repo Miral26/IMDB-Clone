@@ -49,7 +49,7 @@ const MovieDetail: React.FC<MovieDetailProps> = ({ movie, id }) => {
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         <div className="relative w-full h-96">
           <Image
-            src={movie.poster.startsWith('http') ? movie.poster : `http://localhost:5000${movie.poster}`}
+            src={movie.poster.startsWith('http') ? movie.poster : `https://imdb-clone-oe9e.onrender.com${movie.poster}`}
             alt={movie.name}
             fill
             className="object-cover"

@@ -13,7 +13,6 @@ import { createMovie, updateMovie, CreateMovieData, UpdateMovieData } from '@/fe
 import { fetchProducers, createProducer } from '@/features/producersSlice';
 import { fetchActors, createActor } from '@/features/actorsSlice';
 import { Movie } from '@/features/moviesSlice';
-import axios from 'axios';
 import { Resolver } from 'react-hook-form';
 
 interface MovieFormProps {
@@ -59,6 +58,7 @@ export default function MovieForm({ movie, isEdit = false }: MovieFormProps) {
     control,
     handleSubmit,
     formState: { errors },
+    reset
   } = useForm<MovieFormData>({
     resolver: yupResolver(schema) as Resolver<MovieFormData>,
     defaultValues: {
@@ -95,10 +95,21 @@ export default function MovieForm({ movie, isEdit = false }: MovieFormProps) {
   useEffect(() => {
     dispatch(fetchProducers());
     dispatch(fetchActors());
-    if (movie?.poster) {
-      setPreviewUrl(`https://imdb-clone-oe9e.onrender.com${movie.poster}`);
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (movie) {
+      reset({
+        name: movie.name,
+        yearOfRelease: movie.yearOfRelease.toString(),
+        plot: movie.plot,
+        poster: movie.poster,
+        producerId: movie.producer._id,
+        actorIds: movie.actors.map(actor => actor._id),
+      });
+      setPreviewUrl(movie.poster);
     }
-  }, [dispatch, movie]);
+  }, [movie, reset]);
 
   const producerOptions: Option[] = producers.map(producer => ({
     value: producer._id,
@@ -128,48 +139,88 @@ export default function MovieForm({ movie, isEdit = false }: MovieFormProps) {
       let posterPath = data.poster;
 
       if (selectedFile) {
-        const formData = new FormData();
-        formData.append('poster', selectedFile);
+        const reader = new FileReader();
+        reader.readAsDataURL(selectedFile);
+        reader.onloadend = async () => {
+          posterPath = reader.result as string;
+          
+          const movieData: CreateMovieData = {
+            name: data.name,
+            yearOfRelease: parseInt(data.yearOfRelease),
+            plot: data.plot,
+            poster: posterPath,
+            producer: data.producerId,
+            actors: data.actorIds,
+          };
 
-        try {
-          const response = await axios.post(`https://imdb-clone-oe9e.onrender.com/api/upload`, formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            },
+          if (isEdit && movie) {
+            const updateData: UpdateMovieData = {
+              name: movieData.name,
+              yearOfRelease: movieData.yearOfRelease,
+              plot: movieData.plot,
+              poster: movieData.poster,
+              producer: movieData.producer,
+              actors: movieData.actors,
+            };
+            await dispatch(updateMovie({ id: movie._id, data: updateData })).unwrap();
+          } else {
+            await dispatch(createMovie(movieData)).unwrap();
+          }
+          reset({
+            name: '',
+            yearOfRelease: '',
+            plot: '',
+            poster: '',
+            producerId: '',
+            actorIds: [],
           });
-          posterPath = response.data.filePath;
-        } catch (err){
-          console.error('Failed to upload image',err);
-          setUploadError('Failed to upload image. Please try again.');
-          return;
-        }
-      }
-
-      const movieData: CreateMovieData = {
-        name: data.name,
-        yearOfRelease: parseInt(data.yearOfRelease),
-        plot: data.plot,
-        poster: posterPath,
-        producer: data.producerId,
-        actors: data.actorIds,
-      };
-
-      if (isEdit && movie) {
-        const updateData: UpdateMovieData = {
-          name: movieData.name,
-          yearOfRelease: movieData.yearOfRelease,
-          plot: movieData.plot,
-          poster: movieData.poster,
-          producer: movieData.producer,
-          actors: movieData.actors,
+          setSelectedFile(null);
+          setPreviewUrl(null);
+          setUploadError(null);
+          
+          router.push('/');
         };
-        await dispatch(updateMovie({ id: movie._id, data: updateData })).unwrap();
       } else {
-        await dispatch(createMovie(movieData)).unwrap();
+        const movieData: CreateMovieData = {
+          name: data.name,
+          yearOfRelease: parseInt(data.yearOfRelease),
+          plot: data.plot,
+          poster: posterPath,
+          producer: data.producerId,
+          actors: data.actorIds,
+        };
+
+        if (isEdit && movie) {
+          const updateData: UpdateMovieData = {
+            name: movieData.name,
+            yearOfRelease: movieData.yearOfRelease,
+            plot: movieData.plot,
+            poster: movieData.poster,
+            producer: movieData.producer,
+            actors: movieData.actors,
+          };
+          await dispatch(updateMovie({ id: movie._id, data: updateData })).unwrap();
+        } else {
+          await dispatch(createMovie(movieData)).unwrap();
+        }
+        
+        // Clear form data
+        reset({
+          name: '',
+          yearOfRelease: '',
+          plot: '',
+          poster: '',
+          producerId: '',
+          actorIds: [],
+        });
+        setSelectedFile(null);
+        setPreviewUrl(null);
+        setUploadError(null);
+        
+        router.push('/');
       }
-      router.push('/');
-    } catch {
-      console.error('Failed to save movie');
+    } catch (error) {
+      console.error('Failed to save movie', error);
       setUploadError('Failed to save movie. Please try again.');
     }
   };
@@ -308,6 +359,7 @@ export default function MovieForm({ movie, isEdit = false }: MovieFormProps) {
                 fill
                 className="object-contain rounded-md"
                 unoptimized={previewUrl.startsWith('data:')}
+                priority
               />
             </div>
           )}

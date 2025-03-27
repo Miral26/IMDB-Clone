@@ -5,6 +5,7 @@ import { fetchMovies, deleteMovie } from '@/features/moviesSlice';
 import Link from 'next/link';
 import { Movie } from '@/features/moviesSlice';
 import Image from 'next/image';
+import LoadingSpinner from './LoadingSpinner';
 
 const MoviesList = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -15,7 +16,7 @@ const MoviesList = () => {
   }, [dispatch]);
 
   if (loading) {
-    return <div className="text-center">Loading...</div>;
+    return <LoadingSpinner />;
   }
 
   if (error) {
@@ -41,11 +42,12 @@ const MoviesList = () => {
           >
             <div className="relative w-full h-64">
               <Image
-                src={movie.poster.startsWith('http') ? movie.poster : `https://imdb-clone-oe9e.onrender.com${movie.poster}`}
+                src={movie.poster}
                 alt={movie.name}
                 fill
                 className="object-cover"
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                unoptimized={movie.poster.startsWith('data:')}
               />
             </div>
             <div className="p-4 text-black">

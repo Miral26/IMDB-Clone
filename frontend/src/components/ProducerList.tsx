@@ -4,6 +4,7 @@ import { AppDispatch, RootState } from '@/features/store';
 import { fetchProducers, deleteProducer } from '@/features/producersSlice';
 import Link from 'next/link';
 import { Producer } from '@/features/producersSlice';
+import LoadingSpinner from './LoadingSpinner';
 
 const ProducerList = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -24,7 +25,7 @@ const ProducerList = () => {
   };
 
   if (loading) {
-    return <div className="text-center">Loading...</div>;
+    return <LoadingSpinner />;
   }
 
   if (error) {

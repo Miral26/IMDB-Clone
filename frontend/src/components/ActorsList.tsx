@@ -5,6 +5,7 @@ import { AppDispatch, RootState } from '@/features/store';
 import { fetchActors, deleteActor } from '@/features/actorsSlice';
 import Link from 'next/link';
 import { Actor } from '@/features/actorsSlice';
+import LoadingSpinner from './LoadingSpinner';
 
 const ActorsDetail = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -25,7 +26,7 @@ const ActorsDetail = () => {
   };
 
   if (loading) {
-    return <div className="text-center">Loading...</div>;
+    return <LoadingSpinner />;
   }
 
   if (error) {
